@@ -2,4 +2,3 @@ flask
 pillow
 google-genai
 python-dotenv
-qunicorn
