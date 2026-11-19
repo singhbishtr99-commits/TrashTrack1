@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoSort AI | Smart Waste Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♻️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-maps-key="{{ maps_key }}">
+
+  <!-- TOP NAV -->
+  <header class="nav">
+    <div class="brand" data-nav="home" role="button" tabindex="0">
+      <span class="logo">♻️</span><span>TrashTrack <b>AI</b></span>
+    </div>
+    <nav class="tabs">
+      <button data-nav="home" class="active"><i>🏠</i><span>Home</span></button>
+      <button data-nav="analyze"><i>📷</i><span>Scan</span></button>
+      <button data-nav="map"><i>📍</i><span>Nearby</span></button>
+      <button data-nav="chat"><i>💬</i><span>Assistant</span></button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ================= HOME ================= -->
+    <section id="view-home" class="view">
+      <div class="hero">
+        <span class="eyebrow">AI-powered waste sorting</span>
+        <h1>Sort smarter.<br><span class="grad">Waste less.</span></h1>
+        <p class="lead">Point your camera at any item, or upload a photo. Get the right bin, a clear disposal tip, and nearby drop-off points in seconds.</p>
+      </div>
+
+      <div class="actions">
+        <button class="action-card" data-go="camera">
+          <span class="ico">📷</span>
+          <span class="t">Scan with camera</span>
+          <span class="d">Point, capture and get an instant answer.</span>
+          <span class="arrow">→</span>
+        </button>
+        <button class="action-card" data-go="upload">
+          <span class="ico">🖼️</span>
+          <span class="t">Upload an image</span>
+          <span class="d">Pick a photo from your device or drag it in.</span>
+          <span class="arrow">→</span>
+        </button>
+      </div>
+
+      <div class="quick">
+        <button class="quick-card" data-nav="map"><span>📍</span><div><b>Find nearby drop-off points</b><small>Collection &amp; recycling points on Google Maps</small></div></button>
+        <button class="quick-card" data-nav="chat"><span>💬</span><div><b>Ask the assistant</b><small>Questions about any waste, answered by Gemini</small></div></button>
+      </div>
+
+      <h2 class="section-title">How it works</h2>
+      <div class="steps">
+        <div class="step"><em>1</em><b>Capture</b><p>Scan or upload a photo of the item.</p></div>
+        <div class="step"><em>2</em><b>Identify</b><p>TrashTrack recognises the material and checks its own confidence.</p></div>
+        <div class="step"><em>3</em><b>Dispose</b><p>Get the right bin plus an educational tip.</p></div>
+      </div>
+
+      <h2 class="section-title">Know your bins</h2>
+      <div class="bins">
+        <div class="bin-chip recyclable"><i></i>Blue<small>Dry recyclables</small></div>
+        <div class="bin-chip organic"><i></i>Green<small>Wet / organic</small></div>
+        <div class="bin-chip hazardous"><i></i>Red<small>Hazardous / e-waste</small></div>
+        <div class="bin-chip general"><i></i>Black<small>General waste</small></div>
+      </div>
+    </section>
+
+    <!-- ================= SCAN / UPLOAD ================= -->
+    <section id="view-analyze" class="view" hidden>
+      <h2 class="page-title">Identify your waste</h2>
+
+      <div id="inputArea">
+        <div class="seg">
+          <button data-mode="camera">📷 Camera</button>
+          <button data-mode="upload">🖼️ Upload</button>
+        </div>
+
+        <div id="panel-camera" class="panel">
+          <div id="cameraBox" class="camera">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="frame"></div>
+          </div>
+          <button class="btn" id="captureBtn">📸 Capture &amp; analyze</button>
+          <p id="cameraError" class="notice warn" hidden></p>
+        </div>
+
+        <div id="panel-upload" class="panel" hidden>
+          <label class="dropzone" id="dropzone" for="fileInput">
+            <span class="big">⬆️</span>
+            <b>Click to choose a photo</b>
+            <small>or drag &amp; drop here · JPG or PNG</small>
+          </label>
+          <input type="file" id="fileInput" accept="image/png, image/jpeg" hidden>
+        </div>
+      </div>
+
+      <div id="resultArea" hidden>
+        <div class="preview-wrap"><img id="preview" alt="Scanned item"></div>
+
+        <div id="loading" class="loading" hidden>
+          <div class="spinner"></div>
+          <span>Ai is inspecting the item…</span>
+        </div>
+
+        <p id="errorMsg" class="notice error" hidden></p>
+
+        <div id="result" class="result" hidden>
+          <div class="result-head">
+            <span id="resIcon" class="res-icon"></span>
+            <div>
+              <small>Detected item</small>
+              <h3 id="resItem"></h3>
+            </div>
+          </div>
+          <div class="row"><span>📂 Recommended bin</span><b id="resBin"></b></div>
+          <div class="row"><span>🎯 Confidence</span><b><span id="resConf"></span>%</b></div>
+          <div class="meter"><span id="meterFill"></span></div>
+          <div class="tip"><b>📖 Disposal tip</b><p id="resTip"></p></div>
+          <p id="safetyWarn" class="notice warn" hidden>
+            🛡️ <b>Safety-first rule:</b> low confidence. Check local rules or use general waste to avoid contaminating a recycling batch.
+          </p>
+        </div>
+
+        <div class="result-actions">
+          <div id="successActions" class="two" hidden>
+            <button class="btn ghost" id="askAbout">💬 Ask the assistant</button>
+            <button class="btn ghost" id="findDropoff">📍 Find drop-off nearby</button>
+          </div>
+          <button class="btn" id="scanAgain">🔄 Scan another item</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MAP ================= -->
+    <section id="view-map" class="view" hidden>
+      <h2 class="page-title">Nearby waste collection &amp; drop-off points</h2>
+
+      <div class="chips" id="chips">
+        <button data-cat="pickup" class="chip active">🚛 Collection points</button>
+        <button data-cat="recycling" class="chip">♻️ Recycling</button>
+        <button data-cat="ewaste" class="chip">🔌 E-waste</button>
+        <button data-cat="scrap" class="chip">🧱 Scrap dealers</button>
+        <button data-cat="compost" class="chip">🌱 Compost</button>
+      </div>
+
+      <form id="areaForm" class="searchbar">
+        <input id="areaInput" type="text" placeholder="Search another area (e.g. Pune)… leave empty to use my location">
+        <button class="btn" type="submit">Search</button>
+        <button class="btn ghost" type="button" id="useLocation">📍 My location</button>
+      </form>
+
+      <p id="mapStatus" class="notice" hidden></p>
+
+      <div class="map-layout">
+        <div id="map" class="map"></div>
+        <div id="placeList" class="places"></div>
+      </div>
+    </section>
+
+    <!-- ================= CHAT ================= -->
+    <section id="view-chat" class="view" hidden>
+      <h2 class="page-title">Waste assistant</h2>
+
+      <div class="chat">
+        <div id="messages" class="messages"></div>
+
+        <div class="suggest" id="suggest">
+          <button>Can I recycle pizza boxes?</button>
+          <button>How do I dispose of old batteries?</button>
+          <button>What can go into compost?</button>
+          <button>Is bubble wrap recyclable?</button>
+        </div>
+
+        <form id="chatForm" class="composer">
+          <input id="chatInput" type="text" maxlength="1000" placeholder="Ask anything about waste, recycling, compost…" autocomplete="off">
+          <button class="btn send" type="submit" aria-label="Send">➤</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <canvas id="canvas" hidden></canvas>
+  <!-- Google Maps JavaScript API: official bootstrap loader (defines google.maps.importLibrary) -->
+  <script>
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+    ({ key: "{{ maps_key }}", v: "weekly" });
+  </script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
